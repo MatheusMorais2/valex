@@ -10,13 +10,8 @@ export function cardCreationSchemaValidation(
   const validation = CardCreationSchema.validate(cardInfo);
 
   if (validation.error) {
-    return res
-      .status(422)
-      .send(
-        `Error validating card creation schema: ${validation.error.details}`
-      );
+    return res.sendStatus(422);
   }
 
   next();
-  return;
 }
