@@ -23,6 +23,7 @@ export async function activateCard(req: Request, res: Response) {
   const cardId: number = parseInt(req.body.cardId);
   const cvc: string = req.body.cvc;
   const password: string = req.body.password;
+  console.log("chegou aqui no activate card controller");
 
   await activateCardService(cardId, cvc, password);
 

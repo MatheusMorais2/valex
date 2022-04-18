@@ -15,9 +15,9 @@ import {
   duplicateError,
   badRequest,
 } from "../utils/errors.js";
+import { getBalance } from "../utils/balanceUtils.js";
 import { compareDates } from "../utils/cardActivationUtils.js";
 import bcrypt from "bcrypt";
-import dayjs from "dayjs";
 
 export async function createCardService(
   employeeId: number,
@@ -67,11 +67,17 @@ export async function activateCardService(
   if (password.length !== 4) throw badRequest("password");
 
   if (cardInfo.password) throw duplicateError("activation");
+  console.log("aqui?");
+  console.log("cardInfo: ", cardInfo);
+  console.log("cvc: ", cvc);
+
+  console.log(!bcrypt.compareSync(cvc, cardInfo.securityCode));
 
   if (!bcrypt.compareSync(cvc, cardInfo.securityCode))
     throw unauthorized("verification code");
 
   cardInfo.password = bcrypt.hashSync(password, 9);
+  console.log("aqui?");
 
   await cardRepository.update(cardId, cardInfo);
 }
@@ -83,8 +89,10 @@ export async function getCardExtract(cardId: number) {
   const payments = await paymentRepository.findByCardId(cardId);
   const recharges = await rechargeRepository.findByCardId(cardId);
 
+  const balance = getBalance(payments, recharges);
+
   console.log("payments: ", payments);
   console.log("recharges: ", recharges);
 
-  return payments;
+  return { balance, transactions: payments, recharges };
 }

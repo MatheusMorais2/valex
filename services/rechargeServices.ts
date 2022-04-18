@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import { badRequest, notFoundError, unauthorized } from "../utils/errors.js";
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as companyRepository from "../repositories/companyRepository.js";
@@ -10,7 +9,6 @@ export async function rechargeCard(
   amount: number,
   apiKey: string
 ) {
-  console.log(amount);
   const companyInfo = await companyRepository.findByApiKey(apiKey);
   if (!companyInfo) throw unauthorized("apiKey");
 
