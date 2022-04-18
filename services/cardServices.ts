@@ -1,6 +1,8 @@
 import * as companyRepository from "../repositories/companyRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
+import * as paymentRepository from "../repositories/paymentRepository.js";
+import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import { TransactionTypes } from "../repositories/cardRepository.js";
 import {
   buildCardName,
@@ -22,7 +24,6 @@ export async function createCardService(
   apiKey: string,
   cardType: TransactionTypes
 ) {
-  console.log("chegou aqui no card service");
   const companyInfo = await companyRepository.findByApiKey(apiKey);
   if (!companyInfo) throw unauthorized("apiKey");
 
@@ -66,13 +67,24 @@ export async function activateCardService(
   if (password.length !== 4) throw badRequest("password");
 
   if (cardInfo.password) throw duplicateError("activation");
-  console.log("cvc: ", cvc);
-  console.log("cardInfo.securityCode: ", cardInfo.securityCode);
+
   if (!bcrypt.compareSync(cvc, cardInfo.securityCode))
     throw unauthorized("verification code");
 
   cardInfo.password = bcrypt.hashSync(password, 9);
-  console.log("cardINfo: ", cardInfo);
 
   await cardRepository.update(cardId, cardInfo);
+}
+
+export async function getCardExtract(cardId: number) {
+  const cardInfo = await cardRepository.findById(cardId);
+  if (!cardInfo) throw notFoundError("card");
+
+  const payments = await paymentRepository.findByCardId(cardId);
+  const recharges = await rechargeRepository.findByCardId(cardId);
+
+  console.log("payments: ", payments);
+  console.log("recharges: ", recharges);
+
+  return payments;
 }

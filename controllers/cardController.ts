@@ -3,6 +3,7 @@ import { TransactionTypes } from "../repositories/cardRepository.js";
 import {
   createCardService,
   activateCardService,
+  getCardExtract,
 } from "../services/cardServices.js";
 import { validateCardType } from "../utils/cardCreationUtils.js";
 
@@ -26,4 +27,12 @@ export async function activateCard(req: Request, res: Response) {
   await activateCardService(cardId, cvc, password);
 
   return res.sendStatus(200);
+}
+
+export async function getExtract(req: Request, res: Response) {
+  const cardId: number = parseInt(req.params.id);
+
+  const extract = await getCardExtract(cardId);
+
+  return res.status(200).send(extract);
 }
