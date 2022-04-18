@@ -18,3 +18,10 @@ export function duplicateError(entity: string) {
     message: `${entity} already exists`,
   };
 }
+
+export function badRequest(entity: string) {
+  return {
+    type: "error_request",
+    message: `${entity} is in a incorrect format`,
+  };
+}

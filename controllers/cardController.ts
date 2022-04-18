@@ -1,13 +1,9 @@
 import { Request, Response } from "express";
-import { findByApiKey } from "../repositories/companyRepository.js";
-import { findById } from "../repositories/employeeRepository.js";
+import { TransactionTypes } from "../repositories/cardRepository.js";
 import {
-  findByTypeAndEmployeeId,
-  insert,
-  TransactionTypes,
-} from "../repositories/cardRepository.js";
-import dayjs from "dayjs";
-import { createCardService } from "../services/cardServices.js";
+  createCardService,
+  activateCardService,
+} from "../services/cardServices.js";
 import { validateCardType } from "../utils/cardCreationUtils.js";
 
 export async function createCard(req: Request, res: Response) {
@@ -18,7 +14,16 @@ export async function createCard(req: Request, res: Response) {
   if (!validateCardType(cardType))
     return res.status(422).send("Invalid card type");
 
-  createCardService(employeeId, apiKey, cardType);
+  const cvc = await createCardService(employeeId, apiKey, cardType);
+  return res.status(201).send(`Security code: ${cvc}`);
+}
 
-  return res.sendStatus(201);
+export async function activateCard(req: Request, res: Response) {
+  const cardId: number = parseInt(req.body.cardId);
+  const cvc: string = req.body.cvc;
+  const password: string = req.body.password;
+
+  await activateCardService(cardId, cvc, password);
+
+  return res.sendStatus(200);
 }
