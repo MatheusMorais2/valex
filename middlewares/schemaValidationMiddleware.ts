@@ -6,6 +6,7 @@ export function schemaValidationMiddleware(schema) {
     const validation = schema.validate(req.body);
 
     if (validation.error) {
+      console.log("validation.error: ", validation.error);
       throw badRequest("request");
     }
     next();

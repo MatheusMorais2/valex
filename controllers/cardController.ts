@@ -4,6 +4,8 @@ import {
   createCardService,
   activateCardService,
   getCardExtract,
+  blockCardService,
+  unblockCardService,
 } from "../services/cardServices.js";
 import { validateCardType } from "../utils/cardCreationUtils.js";
 
@@ -36,4 +38,22 @@ export async function getExtract(req: Request, res: Response) {
   const extract = await getCardExtract(cardId);
 
   return res.status(200).send(extract);
+}
+
+export async function blockCard(req: Request, res: Response) {
+  const cardId: number = parseInt(req.params.id);
+  const password: string = req.body.password;
+
+  await blockCardService(cardId, password);
+
+  return res.sendStatus(200);
+}
+
+export async function unblockCard(req: Request, res: Response) {
+  const cardId: number = parseInt(req.params.id);
+  const password: string = req.body.password;
+
+  await unblockCardService(cardId, password);
+
+  return res.sendStatus(200);
 }

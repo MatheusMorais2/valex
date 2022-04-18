@@ -45,7 +45,7 @@ export async function createCardService(
     cardholderName: buildCardName(employeeInfo.fullName),
     expirationDate: buildExpirationDate(),
     securityCode: bcrypt.hashSync(cvc, 9),
-    isVirtual: true,
+    isVirtual: false,
     isBlocked: false,
     type: cardType,
   };
@@ -67,17 +67,11 @@ export async function activateCardService(
   if (password.length !== 4) throw badRequest("password");
 
   if (cardInfo.password) throw duplicateError("activation");
-  console.log("aqui?");
-  console.log("cardInfo: ", cardInfo);
-  console.log("cvc: ", cvc);
-
-  console.log(!bcrypt.compareSync(cvc, cardInfo.securityCode));
 
   if (!bcrypt.compareSync(cvc, cardInfo.securityCode))
     throw unauthorized("verification code");
 
   cardInfo.password = bcrypt.hashSync(password, 9);
-  console.log("aqui?");
 
   await cardRepository.update(cardId, cardInfo);
 }
@@ -91,8 +85,37 @@ export async function getCardExtract(cardId: number) {
 
   const balance = getBalance(payments, recharges);
 
-  console.log("payments: ", payments);
-  console.log("recharges: ", recharges);
-
   return { balance, transactions: payments, recharges };
+}
+
+export async function blockCardService(cardId: number, password: string) {
+  const cardInfo = await cardRepository.findById(cardId);
+  if (!cardInfo) throw notFoundError("card");
+
+  if (!compareDates(cardInfo.expirationDate)) throw unauthorized("date");
+
+  if (cardInfo.isBlocked) throw unauthorized("block");
+
+  const passwordVerification = bcrypt.compareSync(password, cardInfo.password);
+  if (!passwordVerification) throw unauthorized("password");
+
+  cardInfo.isBlocked = true;
+
+  await cardRepository.update(cardId, cardInfo);
+}
+
+export async function unblockCardService(cardId: number, password: string) {
+  const cardInfo = await cardRepository.findById(cardId);
+  if (!cardInfo) throw notFoundError("card");
+
+  if (!compareDates(cardInfo.expirationDate)) throw unauthorized("date");
+
+  if (!cardInfo.isBlocked) throw unauthorized("block");
+
+  const passwordVerification = bcrypt.compareSync(password, cardInfo.password);
+  if (!passwordVerification) throw unauthorized("password");
+
+  cardInfo.isBlocked = false;
+
+  await cardRepository.update(cardId, cardInfo);
 }
